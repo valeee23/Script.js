@@ -1,0 +1,72 @@
+const malla = {
+  "Primer año - Semestre 1": [
+    "Introducción a los estudios de enfermería",
+    "Biología celular",
+    "Fundamentos del actuar comunitario",
+    "Morfología y función",
+    "Introducción a matemática aplicada",
+    "Primeros auxilios"
+  ],
+  "Primer año - Semestre 2": [
+    "Histoembriologia",
+    "Inglés I",
+    "Química",
+    "Fundamentos éticos del actuar comunitario",
+    "Enfermería en ciclo vital"
+  ],
+  // Agrega los siguientes semestres como en el archivo
+};
+
+const prerequisitos = {
+  "Histoembriologia": ["Biología celular"],
+  "Fundamentos éticos del actuar comunitario": ["Fundamentos del actuar comunitario"],
+  "Enfermería en ciclo vital": ["Introducción a los estudios de enfermería"],
+  "Microbiología y parasitología para enfermería": ["Biología celular"],
+  "Farmacología": ["Química", "Fisiología general"],
+  // Completa con más...
+};
+
+function loadEstado(ramo) {
+  return localStorage.getItem(`estado-${ramo}`) || "no-cursado";
+}
+
+function saveEstado(ramo, estado) {
+  localStorage.setItem(`estado-${ramo}`, estado);
+}
+
+function toggleEstado(ramoDiv, ramo) {
+  const actual = ramoDiv.classList.contains("aprobado") ? "aprobado" : "no-cursado";
+  const nuevo = actual === "aprobado" ? "no-cursado" : "aprobado";
+  if (nuevo === "aprobado") {
+    const prereqs = prerequisitos[ramo] || [];
+    const faltantes = prereqs.filter(pr => localStorage.getItem(`estado-${pr}`) !== "aprobado");
+    if (faltantes.length > 0) {
+      alert(`No puedes aprobar "${ramo}" sin aprobar primero:\n- ${faltantes.join("\n- ")}`);
+      return;
+    }
+  }
+  ramoDiv.classList.toggle("aprobado", nuevo === "aprobado");
+  ramoDiv.classList.toggle("no-cursado", nuevo === "no-cursado");
+  saveEstado(ramo, nuevo);
+}
+
+function crearMalla() {
+  const container = document.getElementById("malla");
+  Object.entries(malla).forEach(([semestre, ramos]) => {
+    const col = document.createElement("div");
+    col.className = "semestre";
+    const h3 = document.createElement("h3");
+    h3.textContent = semestre;
+    col.appendChild(h3);
+    ramos.forEach(ramo => {
+      const div = document.createElement("div");
+      div.textContent = ramo;
+      div.className = `ramo ${loadEstado(ramo)}`;
+      div.onclick = () => toggleEstado(div, ramo);
+      col.appendChild(div);
+    });
+    container.appendChild(col);
+  });
+}
+
+crearMalla();
